@@ -1,0 +1,25 @@
+# EditorConfig — https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# PHP (PSR-12 uses 4 spaces)
+[*.php]
+indent_size = 4
+
+# Markdown — keep trailing spaces (line breaks) and don't trim
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefiles require tabs
+[Makefile]
+indent_style = tab
+
+[*.{yml,yaml}]
+indent_size = 2

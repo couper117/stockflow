@@ -1,0 +1,25 @@
+# StockFlow — local development services.
+# Postgres is the system of record (see CLAUDE.md "Database decision").
+# Credentials are read from .env at the repo root (copy .env.example -> .env).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stockflow_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-stockflow}
+      POSTGRES_USER: ${DB_USERNAME:-stockflow}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - stockflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-stockflow} -d ${DB_DATABASE:-stockflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  stockflow_pgdata:
+    name: stockflow_pgdata
