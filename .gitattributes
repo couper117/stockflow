@@ -1,0 +1,13 @@
+# Normalize line endings to LF in the repo for all text files.
+* text=auto eol=lf
+
+# Explicit binary types (never normalized).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mp4 binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
