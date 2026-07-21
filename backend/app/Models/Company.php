@@ -32,4 +32,9 @@ class Company extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function shops(): HasMany
+    {
+        return $this->hasMany(Shop::class);
+    }
 }

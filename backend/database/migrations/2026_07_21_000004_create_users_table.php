@@ -4,8 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// Runs AFTER companies & roles so the tenant/role foreign keys resolve. Every
-// user belongs to exactly one company (the tenant) and one role.
+// Runs AFTER companies, roles & shops so the tenant/role/shop foreign keys
+// resolve. Every user belongs to exactly one company (the tenant) and one role.
+// A seller/shopkeeper is additionally assigned to one shop.
 return new class extends Migration
 {
     public function up(): void
@@ -19,9 +20,11 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('locale', 5)->default('en');
-            // Forward-looking: shops & stocks arrive in a later session, so these
-            // stay nullable with no FK constraint yet.
-            $table->unsignedBigInteger('assigned_shop_id')->nullable();
+            // Which shop this user works in (sellers/shopkeepers). Nullable:
+            // super admins, stock managers and the boss are not tied to a shop.
+            $table->foreignId('assigned_shop_id')->nullable()->constrained('shops')->nullOnDelete();
+            // Forward-looking: the central stock arrives in a later session, so
+            // this stays nullable with no FK constraint yet.
             $table->unsignedBigInteger('assigned_stock_id')->nullable();
             $table->rememberToken();
             $table->timestamps();

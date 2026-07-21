@@ -59,6 +59,12 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    /** The shop this user works in (sellers/shopkeepers); null otherwise. */
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'assigned_shop_id');
+    }
+
     public function hasRole(string $name): bool
     {
         return $this->role?->name === $name;
@@ -67,5 +73,16 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->hasRole(Role::SUPER_ADMIN);
+    }
+
+    // Company-wide roles see every shop; a shopkeeper is confined to their own.
+    // This drives the ShopScope (shop-level privacy — see CLAUDE.md §9.1).
+    public function seesAllShops(): bool
+    {
+        return in_array(
+            $this->role?->name,
+            [Role::SUPER_ADMIN, Role::BOSS, Role::STOCK_MANAGER],
+            true,
+        );
     }
 }
