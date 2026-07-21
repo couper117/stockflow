@@ -160,6 +160,24 @@ stockflow/
 - The `companies` table itself is **not** tenant-scoped (it is the tenant root).
 - **A tenant-isolation test is mandatory** and must always pass.
 
+### 9.1 Shop-level visibility (privacy between shops)
+
+Shop privacy composes **on top of** tenant isolation: within one company, a
+seller/shopkeeper sees only their **own** shop; company-wide roles (Super
+Administrator, Boss, Stock Manager) see every shop.
+
+- **`ShopVisibility`** — a request-scoped holder (singleton), the shop analogue of
+  `Tenancy`. Carries the viewer's `shopId` and a `seesAllShops` flag.
+- **`ShopScope`** — a global scope that constrains shop-owned queries to
+  `shop_id` when the viewer `isConstrained()` (i.e. not a company-wide role).
+- **`BelongsToShop`** — trait applied to shop-owned models; adds `ShopScope` and
+  auto-fills `shop_id` on create. Composes with `BelongsToTenant`.
+- **`SetTenant`** middleware populates `ShopVisibility` from the authenticated
+  user (`assigned_shop_id` + `seesAllShops()`), alongside the company.
+- **Status:** the mechanism is built and tested (`ShopScopeTest`), but **no
+  production table uses `BelongsToShop` yet** — the first shop-owned tables (shop
+  inventory & movements) arrive with the stock core. Apply the trait there.
+
 ---
 
 ## 10. Recorded decisions & defaults
@@ -175,6 +193,8 @@ Decisions made during scaffolding (change only by updating this file):
 | **Package names** | `stockflow/backend` (composer), `stockflow-frontend` (npm) | — |
 | **Rwanda TIN** | **9 digits** | Per brief; enforced by the reusable `TinNumber` rule. |
 | **RW translations** | English placeholders allowed where the Kinyarwanda term is unknown | Keys must still exist in both locales (§7). Full RW pass is a later session. |
+| **Shops in the foundation** | `shops` table, `Shop` model, and the `ShopScope` concept are built now (§9.1) | Brief lists them as foundation deliverables. Shop-owned *inventory/movements* remain deferred to the stock core. |
+| **Shop column on users** | **`assigned_shop_id`** (nullable FK → `shops`, `nullOnDelete`) | The shop a user is assigned to; nullable because non-shop roles have none. Name kept from the original scaffold. |
 
 ---
 
@@ -182,6 +202,11 @@ Decisions made during scaffolding (change only by updating this file):
 
 The foundation session builds **infrastructure only**. Do NOT add product features until
 requested. Deferred to later sessions (in order): shared UI kit → users & companies
-management → catalog (products/categories/suppliers) → stock core & StockMovementService
-→ transfer flow (request→approve→issue→confirm) → dashboards & reports → full Kinyarwanda
-pass → hardening & QA.
+management (incl. managing shops & assigning sellers in the UI) → catalog
+(products/categories/suppliers) → stock core & StockMovementService (first tables to use
+`BelongsToShop`) → transfer flow (request→approve→issue→confirm) → dashboards & reports →
+full Kinyarwanda pass → hardening & QA.
+
+Built in the foundation and ready to build on: the `shops` table + `Shop` model, and the
+shop-visibility mechanism (`ShopVisibility` / `ShopScope` / `BelongsToShop`, §9.1). What
+is **not** yet built is any shop-owned business data or the UI to manage shops.
