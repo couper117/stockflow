@@ -1,0 +1,81 @@
+# Continuous integration for the StockFlow monorepo.
+# Two independent jobs — backend (Laravel) and frontend (Next.js) — so a failure
+# in one is easy to locate. Both run on every push and pull request.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend:
+    name: Backend (Laravel · PHP 8.2)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          # pdo_sqlite backs the in-memory test database (see phpunit.xml);
+          # pgsql is present so the app matches its PostgreSQL runtime.
+          extensions: mbstring, dom, fileinfo, bcmath, sqlite3, pdo_sqlite, pgsql, pdo_pgsql
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Check formatting (Pint)
+        run: php vendor/bin/pint --test
+
+      - name: Run tests (PHPUnit)
+        run: php artisan test
+
+  frontend:
+    name: Frontend (Next.js · Node 20)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Check formatting (Prettier)
+        run: npm run format:check
+
+      - name: Run tests (Vitest)
+        run: npm test
+
+      - name: Build
+        run: npm run build
