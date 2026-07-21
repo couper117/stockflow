@@ -1,0 +1,42 @@
+{
+  "app": {
+    "name": "StockFlow",
+    "tagline": "Stock management for local businesses"
+  },
+  "common": {
+    "loading": "Loading…",
+    "language": "Language",
+    "english": "English",
+    "kinyarwanda": "Kinyarwanda",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "sign_out": "Sign out"
+  },
+  "login": {
+    "title": "Sign in to your company",
+    "subtitle": "Enter your company TIN and your account details.",
+    "tin_label": "Company TIN",
+    "tin_placeholder": "9-digit TIN",
+    "email_label": "Email",
+    "email_placeholder": "you@company.rw",
+    "password_label": "Password",
+    "password_placeholder": "Your password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "error_generic": "Invalid TIN, email, or password."
+  },
+  "home": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}",
+    "company": "Company",
+    "role": "Role",
+    "foundation_note": "This is the foundation build. Product features arrive in the next sessions."
+  },
+  "roles": {
+    "super_admin": "Super Administrator",
+    "stock_manager": "Stock Manager",
+    "shopkeeper": "Shopkeeper",
+    "boss": "Boss"
+  }
+}

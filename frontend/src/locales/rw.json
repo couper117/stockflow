@@ -1,0 +1,42 @@
+{
+  "app": {
+    "name": "StockFlow",
+    "tagline": "Gucunga ububiko ku bucuruzi buto"
+  },
+  "common": {
+    "loading": "Biratunganywa…",
+    "language": "Ururimi",
+    "english": "Icyongereza",
+    "kinyarwanda": "Ikinyarwanda",
+    "theme": "Insanganyamatsiko",
+    "theme_light": "Urumuri",
+    "theme_dark": "Umwijima",
+    "sign_out": "Sohoka"
+  },
+  "login": {
+    "title": "Injira muri kompanyi yawe",
+    "subtitle": "Andika TIN ya kompanyi hamwe n'amakuru ya konti yawe.",
+    "tin_label": "TIN ya kompanyi",
+    "tin_placeholder": "TIN y'imibare 9",
+    "email_label": "Imeyili",
+    "email_placeholder": "wowe@kompanyi.rw",
+    "password_label": "Ijambobanga",
+    "password_placeholder": "Ijambobanga ryawe",
+    "submit": "Injira",
+    "submitting": "Kwinjira…",
+    "error_generic": "TIN, imeyili, cyangwa ijambobanga si byo."
+  },
+  "home": {
+    "title": "Imbonerahamwe",
+    "welcome": "Murakaza neza, {name}",
+    "company": "Kompanyi",
+    "role": "Uruhare",
+    "foundation_note": "Iyi ni intangiriro y'urubuga. Ibikorwa by'ingenzi bizaza mu byiciro bikurikira."
+  },
+  "roles": {
+    "super_admin": "Umuyobozi Mukuru",
+    "stock_manager": "Umuyobozi w'Ububiko",
+    "shopkeeper": "Umucuruzi wa Boutique",
+    "boss": "Nyir'ubucuruzi"
+  }
+}

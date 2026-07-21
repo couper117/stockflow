@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+/* Dark mode is class-based (.dark on <html>) so it can be toggled, not only
+   driven by the OS. Dark mode is a first-class citizen for StockFlow. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Semantic surface tokens flip between light and dark. */
+:root {
+  --bg: #f8fafc; /* slate-50  */
+  --surface: #ffffff;
+  --surface-2: #f1f5f9; /* slate-100 */
+  --fg: #0f172a; /* slate-900 */
+  --muted: #64748b; /* slate-500 */
+  --border: #e2e8f0; /* slate-200 */
+}
+
+.dark {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16233d;
+  --fg: #e2e8f0; /* slate-200 */
+  --muted: #94a3b8; /* slate-400 */
+  --border: #1e293b; /* slate-800 */
+}
+
+@theme {
+  /* Brand + status palette (design tokens from the brief). */
+  --color-primary: #1e3a8a; /* deep blue */
+  --color-primary-hover: #1c357d;
+  --color-accent: #3b82f6;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info: #0ea5e9;
+
+  /* Rounded corners. */
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
+}
+
+/* Map the dynamic surface variables into Tailwind color utilities
+   (bg-surface, text-fg, border-border, …). "inline" keeps them reactive to
+   the .dark class. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
