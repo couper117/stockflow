@@ -33,9 +33,34 @@
   --color-danger: #dc2626;
   --color-info: #0ea5e9;
 
+  /* Neutral gray ramp — the surface/border tokens above are drawn from these,
+     exposed as utilities (bg-neutral-100, text-neutral-500, …) for one-off use. */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+
+  /* Spacing: base unit is 4px, so the design grid is 8px — use even steps
+     (2 = 8px, 4 = 16px, 6 = 24px, 8 = 32px) for layout rhythm. Declared
+     explicitly so the 8px grid is a decision, not an inherited default. */
+  --spacing: 0.25rem;
+
   /* Rounded corners. */
   --radius-card: 0.75rem;
   --radius-control: 0.5rem;
+
+  /* Elevation. Soft, low-contrast shadows that read on both light and dark
+     surfaces (the heavier -overlay is for popovers/menus). */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.1);
+  --shadow-control: 0 1px 2px rgb(15 23 42 / 0.08);
+  --shadow-overlay: 0 10px 15px -3px rgb(15 23 42 / 0.1),
+    0 4px 6px -4px rgb(15 23 42 / 0.1);
 }
 
 /* Map the dynamic surface variables into Tailwind color utilities

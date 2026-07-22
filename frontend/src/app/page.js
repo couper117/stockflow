@@ -1,14 +1,13 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AppHeader } from '@/layouts/AppHeader';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Protected home. Intentionally feature-free — this is the foundation build.
 function HomeContent() {
-  const t = useTranslations();
+  const t = useTranslation();
   const { user, company, role } = useAuth();
 
   // The backend sends a translation key (e.g. "roles.super_admin"); translate it.
