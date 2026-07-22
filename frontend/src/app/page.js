@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AppHeader } from '@/layouts/AppHeader';
+import { AppShell } from '@/layouts/AppShell';
 import { useAuth } from '@/hooks/useAuth';
 
 // Protected home. Intentionally feature-free — this is the foundation build.
@@ -15,7 +15,7 @@ function HomeContent() {
   const roleLabel = role?.label_key ? t(role.label_key) : (role?.name ?? '');
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
       <h1 className="text-fg text-xl font-semibold">{t('home.title')}</h1>
       <p className="text-muted mt-1">{t('home.welcome', { name: user?.name ?? '' })}</p>
 
@@ -34,17 +34,16 @@ function HomeContent() {
       <p className="border-border text-muted mt-8 rounded-[var(--radius-card)] border border-dashed p-4 text-sm">
         {t('home.foundation_note')}
       </p>
-    </main>
+    </div>
   );
 }
 
 export default function Home() {
   return (
     <ProtectedRoute>
-      <div className="bg-bg flex min-h-dvh flex-col">
-        <AppHeader />
+      <AppShell>
         <HomeContent />
-      </div>
+      </AppShell>
     </ProtectedRoute>
   );
 }

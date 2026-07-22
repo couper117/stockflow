@@ -33,6 +33,18 @@
     "role": "Uruhare",
     "foundation_note": "Iyi ni intangiriro y'urubuga. Ibikorwa by'ingenzi bizaza mu byiciro bikurikira."
   },
+  "nav": {
+    "primary": "Ibikubiye mu buyobozi",
+    "soon": "Bigiye kuza",
+    "dashboard": "Imbonerahamwe",
+    "inventory": "Ububiko",
+    "takeouts": "Gusohora",
+    "shops": "Amaduka",
+    "suppliers": "Abatanga ibicuruzwa",
+    "reports": "Raporo",
+    "settings": "Igenamiterere",
+    "support": "Ubufasha"
+  },
   "roles": {
     "super_admin": "Umuyobozi Mukuru",
     "stock_manager": "Umuyobozi w'Ububiko",
