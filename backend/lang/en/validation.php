@@ -198,6 +198,9 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'name' => 'company name',
+        'tin_number' => 'TIN',
+    ],
 
 ];

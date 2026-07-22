@@ -1,7 +1,12 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CompanyController;
 use Illuminate\Support\Facades\Route;
+
+// Public tenant onboarding. Rate-limited to blunt automated abuse; in production
+// this may later be gated behind a super-admin or an email-verified signup flow.
+Route::post('companies', [CompanyController::class, 'store'])->middleware('throttle:10,1');
 
 Route::prefix('auth')->group(function () {
     // Public: rate-limited to blunt credential stuffing.
