@@ -1,212 +1,111 @@
-# CLAUDE.md — StockFlow
+# CLAUDE.md — StockFlow (merged)
 
-> **This file is authoritative.** Claude Code loads it every session. When a rule or
-> decision changes, update it **here** first. Every future session must follow it.
+> **This file is authoritative.** Claude Code loads it every session. When a rule or decision
+> changes, update it **here** first. The full design lives in `../architecture/` (SF-DOC merge).
 
 ---
 
 ## 1. Product summary
 
-StockFlow is a **production-grade, multi-company (multi-tenant) Stock Management
-System** for **local / small businesses in Rwanda**.
+StockFlow is a **multi-business (multi-tenant) stock management web app**, sold as a subscription,
+for small/local retailers (initial market: Rwanda). Goods flow **supplier → stock room(s) →
+shop(s)**. Each business signs in with its **TIN + email + password** and gets a completely
+isolated workspace. Mobile-first, dark-mode first-class, bilingual **EN + RW**. It is **stock
+only** — not a POS, warehouse/logistics, or accounting system.
 
-Goods move: **Suppliers → the company's MAIN STOCK → its SHOPS.** Each company signs
-into its own panel using its **TIN (Tax Identification Number) + email + password**.
+**Four roles** (a user has exactly one): `owner` (read-only, gets the daily report) · `admin`
+(sets up the workspace) · `stock_manager` (runs stock rooms, fulfils requests) · `seller` (shop
+floor, **assigned to one shop, sees only it**).
 
-**Four roles:**
-- **Super Administrator** — manages the company, its staff, shops, and stock.
-- **Stock Manager** — runs the Main Stock.
-- **Shopkeeper** — runs a single shop.
-- **Boss** — read-only.
-
-The app is **mobile-first**, **dark-mode first-class**, and **fully bilingual in
-English + Kinyarwanda**. It is **NOT a logistics app** — no maps, drivers, delivery
-routes, or GPS. Moving stock to a shop is a simple internal flow:
-`request → approve → issue → confirm`.
+The flagship flow is **seller → stock manager**: a seller sees availability by location, raises a
+request, the stock manager fulfils it as a recorded transfer, and the goods then show in the shop
+(`request → accept → fulfil`).
 
 ---
 
-## 2. Tech stack (decided — do NOT change without asking)
+## 2. Tech stack (decided — do NOT change without an ADR)
 
-- **Monorepo** with `/frontend` and `/backend`.
-- **Frontend:** Next.js (App Router) + React in **JavaScript** (not TypeScript),
-  Tailwind CSS, i18n via **next-intl** (locales `en` + `rw`). Node 20+.
-- **Backend:** Laravel (latest stable supporting PHP 8.2+) REST API, **PostgreSQL**,
-  **Laravel Sanctum** token auth, Laravel localization (`lang/en`, `lang/rw`).
-- **Multi-tenancy:** **SINGLE shared database.** Every business table has a
-  `company_id`; a **global scope** enforces isolation. NOT a database-per-tenant model.
+- **One Next.js codebase** (App Router, **TypeScript**). Frontend + API in one repo.
+- **API** = Next.js **Route Handlers** under `src/app/api/**`.
+- **DB:** PostgreSQL 16 (Docker). **Drizzle ORM** + drizzle-kit; `postgres.js` driver.
+- **Validation:** **Zod**, schemas **shared** between client forms and server handlers.
+- **Auth:** **session cookies** (httpOnly, Secure, SameSite=Strict) + server-side `sessions` table;
+  argon2id hashing.
+- **i18n:** **next-intl**, locales `en` + `rw` (ported from the NT foundation).
+- **Client state:** TanStack Query (incl. the 30 s request-queue poll).
+- **PKs:** UUID v7 (app-generated). **Money:** `bigint` minor units. **Quantities:**
+  `numeric(14,3)`.
+- **Testing:** Vitest (unit + integration), Playwright (e2e). **CI:** GitHub Actions.
 
----
-
-## 3. Architecture rules (enforce from commit #1)
-
-- **Thin controllers.** Business logic lives in **service classes**; validation lives
-  in **FormRequests**.
-- **Small, reusable React components.** Separate presentation from logic via **hooks**.
-  Never duplicate UI.
-- **NO hardcoded user-facing text.** Every string is a translation key with **both** an
-  `en` and an `rw` entry. (See §7.)
-- **Every stock movement is recorded** (who / what / when / quantity). Important actions
-  write an **audit log**. Business data is **soft-deleted**, never hard-deleted.
-- **RESTful**, consistent JSON responses, correct HTTP status codes, meaningful
-  **localized** error messages.
-- **Security:** validate everything, hash passwords, secrets in env vars, CSRF where
-  relevant, rate limiting, sanitise uploads, **never trust the client**.
-- **TENANT ISOLATION IS A SECURITY REQUIREMENT.** A user must **NEVER** see or touch
-  another company's data. Treat any cross-company leak as a **critical bug**.
+The prior NT Laravel + separate-frontend monorepo is preserved under `legacy/` for reference only.
 
 ---
 
-## 4. Folder structure
+## 3. The rules that matter (enforce from commit #1)
+
+1. **Tenant isolation is a database guarantee, not just code.** Every tenant table carries
+   `business_id`, has **RLS enabled + forced + a policy**, and the app connects as `sf_app`
+   **without `BYPASSRLS`**. Every request sets `SET LOCAL app.business_id` inside a transaction
+   (`withBusinessContext`). No context ⇒ **zero rows**. Any cross-tenant leak is a **critical bug**.
+2. **Shop-level privacy** composes on top: a `seller` sees only their assigned shop; company-wide
+   roles see all. Another shop's resource returns **404** to a seller.
+3. **Quantity is derived** from immutable movements, **per location**. There is **no quantity
+   column on products**. Corrections are **reversals**, never edits.
+4. **Server decides, client displays.** Every authorization + validation decision is server-side;
+   the permission matrix is enforced on every request (`../architecture/01-requirements.md §3`).
+5. **No hard-coded user-facing text.** Every string is a key present in **both** `en` and `rw`;
+   the key sets must match (CI-enforced). Business data (product/unit/location names) is never
+   translated.
+6. **Layering:** route handler (parse → guard → call service → map envelope) → service (all rules,
+   owns transactions, throws typed domain errors) → repository (Drizzle SQL only). A rule in a
+   handler or an auth check in a repository is rejected in review.
+7. **Money = minor units; quantities = exact decimals.** Never float. Parameterised queries only
+   (a lint rule forbids template-literal SQL). No `dangerouslySetInnerHTML`. No direct
+   `process.env` outside `src/lib/env.ts`.
+8. Deactivate, never delete, anything referenced by history. Every important action writes an
+   append-only audit entry.
+
+---
+
+## 4. API envelope (kept from NT)
+
+Success: `{ "success": true, "data": …, "message"?: "localized", "meta"? }`.
+Error: `{ "success": false, "message": "localized", "code"?, "errors"?: { field: [...] },
+"details"?, "requestId" }`. Correct status codes (200/201/204, 400/401/402/403/404/409/422/429/500).
+Auth failures reveal nothing about which field was wrong. See `../architecture/04-api-specification.md`.
+
+---
+
+## 5. Folder structure (target)
 
 ```
 stockflow/
-├── backend/
-│   ├── app/
-│   │   ├── Http/Controllers/     # thin — delegate to services
-│   │   ├── Http/Middleware/      # SetTenant, etc.
-│   │   ├── Http/Requests/        # FormRequest validation
-│   │   ├── Http/Rules/           # reusable rules (e.g. TinNumber)
-│   │   ├── Models/
-│   │   ├── Models/Concerns/      # BelongsToTenant trait
-│   │   ├── Models/Scopes/        # TenantScope global scope
-│   │   ├── Policies/
-│   │   └── Services/             # business logic
-│   ├── database/{migrations,seeders,factories}/
-│   ├── lang/{en,rw}/             # localized strings & validation
-│   ├── routes/api.php
-│   └── tests/{Feature,Unit}/
-└── frontend/
-    ├── src/
-    │   ├── app/                  # Next.js App Router routes
-    │   ├── components/           # reusable presentational UI
-    │   ├── features/             # feature-scoped modules
-    │   ├── hooks/                # logic separated from presentation
-    │   ├── layouts/
-    │   ├── locales/{en,rw}/      # translation JSON
-    │   ├── services/             # API client wrapper
-    │   ├── types/
-    │   └── utils/
-    └── ...
+├── src/
+│   ├── app/                         App Router: (auth) (app) api/**
+│   ├── components/{ui,layout}/       shared presentational UI + shells
+│   ├── features/                     client hooks + views (mirror api modules)
+│   ├── hooks/                        useAuth, useBusiness, usePolling, useI18n
+│   └── lib/
+│       ├── db/{schema,migrations}, tenant.ts (withBusinessContext), index.ts
+│       ├── server/<module>/          service layer (business rules)
+│       ├── api/                      handler helpers (session, requireRole, validate, envelope)
+│       ├── schemas/                  Zod (SHARED)
+│       ├── i18n/                     next-intl config + messages
+│       ├── permissions.ts, units.ts, money.ts, quantity.ts, dates.ts, env.ts
+├── worker/                           dailyReport, cleanup, subscriptions [P2]
+├── drizzle/                          generated SQL migrations
+├── scripts/                          seed, seed-perf, import-opening-stock
+├── legacy/                           NT Laravel + Next reference (do not build here)
+└── docker-compose.yml                Postgres 16
 ```
 
----
+## 6. Git & commits
+Branches `main` (stable) / `develop`. Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`,
+`test:`, `build:`, `refactor:`). Small logical commits; write the test with each feature. Review
+every change for the two easiest ways to erode the foundation: **hard-coded strings** and
+**cross-tenant/cross-shop access**.
 
-## 5. Coding standards
-
-- Prefer **simple, readable, well-structured** code over clever code.
-- **Comment only WHY**, not what.
-- **Backend:** PSR-12, 4-space indent, formatted by **Laravel Pint**. Controllers stay
-  thin; a controller method should read as: validate (FormRequest) → call service →
-  return a JSON resource/envelope.
-- **Frontend:** ESLint + Prettier, 2-space indent. Components are small and reusable;
-  data-fetching / state logic lives in hooks, not components.
-- **API responses** use a consistent envelope (see §8).
-- Names are descriptive; avoid abbreviations that aren't domain terms (TIN is fine).
-
----
-
-## 6. Git & commit conventions
-
-- Branches: **`main`** (stable) and **`develop`** (integration).
-- **Conventional Commits:** `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `build:`,
-  `refactor:`.
-- **Small, logical commits.** Never dump everything into one commit.
-- Write the **test with each feature**, not after.
-- Review every change for the two easiest ways to erode this foundation:
-  **hardcoded strings** and **cross-company data access**.
-
----
-
-## 7. Bilingual rule (English + Kinyarwanda)
-
-- **No user-facing string is ever hardcoded.** Always a translation key.
-- Every key MUST exist in **both** `en` and `rw`.
-  - Backend: `backend/lang/en/*.php` and `backend/lang/rw/*.php`.
-  - Frontend: `frontend/src/locales/en/*.json` and `frontend/src/locales/rw/*.json`.
-- Error messages returned by the API are **localized** using the request's
-  `Accept-Language` header (falling back to the user's stored `locale`, then `en`).
-- Where an accurate Kinyarwanda translation is not yet known, the `rw` value may
-  temporarily mirror the English text — but **the key must still be present**. A full
-  Kinyarwanda pass is a dedicated later session.
-
----
-
-## 8. API conventions
-
-- **Base path:** `/api`. Auth via **Sanctum bearer tokens** (see §10 decision).
-- **Success envelope:**
-  ```json
-  { "success": true, "data": { }, "message": "optional localized string" }
-  ```
-- **Error envelope:**
-  ```json
-  { "success": false, "message": "localized string", "errors": { "field": ["..."] } }
-  ```
-- Correct HTTP status codes (200/201/204, 401, 403, 404, 422, 429, 500).
-- **Auth failures reveal nothing** about which field was wrong (TIN vs email vs
-  password) — a single generic localized "invalid credentials" message.
-
----
-
-## 9. Multi-tenancy implementation
-
-- Every tenant-owned table has a non-null **`company_id`** foreign key.
-- Models use the **`BelongsToTenant`** trait, which:
-  - applies the **`TenantScope`** global scope (filters by the current company), and
-  - auto-fills `company_id` on create.
-- **`SetTenant`** middleware resolves the current company from the authenticated user
-  and binds it for the scope to read.
-- The `companies` table itself is **not** tenant-scoped (it is the tenant root).
-- **A tenant-isolation test is mandatory** and must always pass.
-
-### 9.1 Shop-level visibility (privacy between shops)
-
-Shop privacy composes **on top of** tenant isolation: within one company, a
-seller/shopkeeper sees only their **own** shop; company-wide roles (Super
-Administrator, Boss, Stock Manager) see every shop.
-
-- **`ShopVisibility`** — a request-scoped holder (singleton), the shop analogue of
-  `Tenancy`. Carries the viewer's `shopId` and a `seesAllShops` flag.
-- **`ShopScope`** — a global scope that constrains shop-owned queries to
-  `shop_id` when the viewer `isConstrained()` (i.e. not a company-wide role).
-- **`BelongsToShop`** — trait applied to shop-owned models; adds `ShopScope` and
-  auto-fills `shop_id` on create. Composes with `BelongsToTenant`.
-- **`SetTenant`** middleware populates `ShopVisibility` from the authenticated
-  user (`assigned_shop_id` + `seesAllShops()`), alongside the company.
-- **Status:** the mechanism is built and tested (`ShopScopeTest`), but **no
-  production table uses `BelongsToShop` yet** — the first shop-owned tables (shop
-  inventory & movements) arrive with the stock core. Apply the trait there.
-
----
-
-## 10. Recorded decisions & defaults
-
-Decisions made during scaffolding (change only by updating this file):
-
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| **Database engine** | **PostgreSQL 16 via Docker** (`docker-compose.yml`) | Brief mandates Postgres; local machine only had XAMPP/MySQL, so Docker provides Postgres without a system install. |
-| **Sanctum mode** | **API tokens (Bearer)**, not SPA cookie mode | Brief says login "returns a scoped token"; simpler for a separate Next.js client. |
-| **Primary keys** | **Auto-increment `bigint`** | Simpler for the foundation. Revisit before it becomes hard to reverse if UUIDs are needed. |
-| **Language (frontend)** | **JavaScript** (not TypeScript) | Per brief. |
-| **Package names** | `stockflow/backend` (composer), `stockflow-frontend` (npm) | — |
-| **Rwanda TIN** | **9 digits** | Per brief; enforced by the reusable `TinNumber` rule. |
-| **RW translations** | English placeholders allowed where the Kinyarwanda term is unknown | Keys must still exist in both locales (§7). Full RW pass is a later session. |
-| **Shops in the foundation** | `shops` table, `Shop` model, and the `ShopScope` concept are built now (§9.1) | Brief lists them as foundation deliverables. Shop-owned *inventory/movements* remain deferred to the stock core. |
-| **Shop column on users** | **`assigned_shop_id`** (nullable FK → `shops`, `nullOnDelete`) | The shop a user is assigned to; nullable because non-shop roles have none. Name kept from the original scaffold. |
-
----
-
-## 11. What is intentionally NOT built yet
-
-The foundation session builds **infrastructure only**. Do NOT add product features until
-requested. Deferred to later sessions (in order): shared UI kit → users & companies
-management (incl. managing shops & assigning sellers in the UI) → catalog
-(products/categories/suppliers) → stock core & StockMovementService (first tables to use
-`BelongsToShop`) → transfer flow (request→approve→issue→confirm) → dashboards & reports →
-full Kinyarwanda pass → hardening & QA.
-
-Built in the foundation and ready to build on: the `shops` table + `Shop` model, and the
-shop-visibility mechanism (`ShopVisibility` / `ShopScope` / `BelongsToShop`, §9.1). What
-is **not** yet built is any shop-owned business data or the UI to manage shops.
+## 7. What is NOT built yet
+Follow `../architecture/05-implementation-plan.md` ticket order. Phase 2 (billing) only after
+Phase 1 is signed off. No supplier records (receipts carry an optional free-text `supplier_ref`),
+no POS, no accounting, no barcode, no batch/expiry, no multi-currency within a business.

@@ -1,0 +1,42 @@
+{
+  "app": {
+    "name": "StockFlow",
+    "tagline": "Gucunga ububiko ku bucuruzi buto"
+  },
+  "common": {
+    "loading": "Biratunganywa…",
+    "language": "Ururimi",
+    "english": "Icyongereza",
+    "kinyarwanda": "Ikinyarwanda",
+    "theme": "Insanganyamatsiko",
+    "theme_light": "Urumuri",
+    "theme_dark": "Umwijima",
+    "sign_out": "Sohoka"
+  },
+  "login": {
+    "title": "Injira mu bucuruzi bwawe",
+    "subtitle": "Andika TIN y'ubucuruzi hamwe n'amakuru ya konti yawe.",
+    "tin_label": "TIN y'ubucuruzi",
+    "tin_placeholder": "TIN",
+    "email_label": "Imeyili",
+    "email_placeholder": "wowe@ubucuruzi.rw",
+    "password_label": "Ijambobanga",
+    "password_placeholder": "Ijambobanga ryawe",
+    "submit": "Injira",
+    "submitting": "Kwinjira…",
+    "error_generic": "TIN y'ubucuruzi, imeyili, cyangwa ijambobanga si byo."
+  },
+  "home": {
+    "title": "Imbonerahamwe",
+    "welcome": "Murakaza neza, {name}",
+    "business": "Ubucuruzi",
+    "role": "Uruhare",
+    "scaffold_note": "TODO-RW: Foundation scaffold. Features arrive per the implementation plan."
+  },
+  "roles": {
+    "owner": "Nyir'ubucuruzi",
+    "admin": "Umuyobozi Mukuru",
+    "stock_manager": "Umuyobozi w'Ububiko",
+    "seller": "Umucuruzi"
+  }
+}

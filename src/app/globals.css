@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+/* Dark-mode first-class: respect the OS preference by default; a class toggle
+   (.dark on <html>) can override once the theme switcher lands. */
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+}

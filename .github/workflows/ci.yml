@@ -1,6 +1,7 @@
-# Continuous integration for the StockFlow monorepo.
-# Two independent jobs — backend (Laravel) and frontend (Next.js) — so a failure
-# in one is easy to locate. Both run on every push and pull request.
+# CI for the merged single-codebase StockFlow (Next.js + Postgres RLS).
+# Extended in SF-007 with: migrate-from-empty, rls-guard, tenant-isolation,
+# i18n-key-parity, and gitleaks secret-scan. The legacy/ Laravel+Next reference
+# is intentionally NOT built here.
 name: CI
 
 on:
@@ -10,72 +11,50 @@ on:
     branches: [main, develop]
 
 jobs:
-  backend:
-    name: Backend (Laravel · PHP 8.2)
+  app:
+    name: App (Next.js · Node 20)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: stockflow
+          POSTGRES_USER: stockflow
+          POSTGRES_PASSWORD: secret
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U stockflow -d stockflow"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://stockflow:secret@localhost:5432/stockflow
+      DATABASE_URL_MIGRATE: postgres://stockflow:secret@localhost:5432/stockflow
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          # pdo_sqlite backs the in-memory test database (see phpunit.xml);
-          # pgsql is present so the app matches its PostgreSQL runtime.
-          extensions: mbstring, dom, fileinfo, bcmath, sqlite3, pdo_sqlite, pgsql, pdo_pgsql
-          coverage: none
-
-      - name: Cache Composer packages
-        uses: actions/cache@v4
-        with:
-          path: backend/vendor
-          key: composer-${{ hashFiles('backend/composer.lock') }}
-          restore-keys: composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-
-      - name: Check formatting (Pint)
-        run: php vendor/bin/pint --test
-
-      - name: Run tests (PHPUnit)
-        run: php artisan test
-
-  frontend:
-    name: Frontend (Next.js · Node 20)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint (ESLint)
+      - run: npm ci
+      - name: Lint
         run: npm run lint
-
-      - name: Check formatting (Prettier)
+      - name: Format check
         run: npm run format:check
-
-      - name: Run tests (Vitest)
-        run: npm test
-
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Migrate from empty
+        run: npm run db:migrate
+      - name: Test (unit + integration, incl. i18n parity + tenant isolation + rls-guard)
+        run: npm run test
       - name: Build
         run: npm run build
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

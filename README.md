@@ -1,87 +1,49 @@
 # StockFlow
 
-**Multi-company (multi-tenant) Stock Management System for local & small businesses in Rwanda.**
-Mobile-first, dark-mode first-class, fully bilingual (English + Kinyarwanda).
+**Multi-business (multi-tenant) stock management, sold as a subscription, for small retailers.**
+Goods flow **supplier → stock room(s) → shop(s)**. Businesses sign in with **TIN + email +
+password**. The core flow is the seller→stock-manager transfer: `request → accept → fulfil`.
+Mobile-first, dark-mode first-class, bilingual EN + RW. **Not** a POS, warehouse, or accounting
+system.
 
-Goods flow: **Suppliers → Main Stock → Shops.** Companies sign in with their
-**TIN + email + password**. Moving stock to a shop is a simple internal flow:
-`request → approve → issue → confirm`. This is **not** a logistics app (no maps,
-drivers, routes, or GPS).
+> **Design lives in [`../architecture/`](../architecture/README.md)** — the merged SF-DOC/NT spec.
+> **[`CLAUDE.md`](./CLAUDE.md)** holds the authoritative stack + rules.
 
-> **Read [`CLAUDE.md`](./CLAUDE.md) first.** It is the authoritative source for the
-> stack, architecture rules, folder structure, coding standards, and conventions.
-
----
-
-## Monorepo layout
-
-```
-stockflow/
-├── backend/            # Laravel REST API (PHP 8.2+, PostgreSQL, Sanctum)
-├── frontend/           # Next.js App Router (JavaScript, Tailwind, next-intl)
-├── docker-compose.yml  # Local PostgreSQL 16
-├── CLAUDE.md           # Project standards (authoritative)
-└── README.md
-```
-
-## Roles
-
-| Role | Capability |
-| --- | --- |
-| Super Administrator | Manages the company, staff, shops, and stock |
-| Stock Manager | Runs the Main Stock |
-| Shopkeeper | Runs a single shop |
-| Boss | Read-only overview |
-
----
+One **Next.js full-stack codebase** (TypeScript) · PostgreSQL 16 with **row-level security** ·
+Drizzle ORM · Zod · next-intl. The prior Laravel + separate-frontend build is kept under
+`legacy/` for reference only.
 
 ## Prerequisites
-
-- **Node 20+** and npm
-- **PHP 8.2+** and **Composer**
-- **Docker** (for the local PostgreSQL 16 service)
+- Node 20+ and npm
+- Docker (local PostgreSQL 16)
 
 ## Quick start
-
 ```bash
-# 1. Start the database
 cp .env.example .env
-docker compose up -d
-
-# 2. Backend  (see backend/README.md)
-cd backend
-cp .env.example .env
-composer install
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve            # http://localhost:8000
-
-# 3. Frontend (see frontend/README.md, in a second terminal)
-cd frontend
-cp .env.local.example .env.local
+docker compose up -d          # Postgres 16
 npm install
-npm run dev                  # http://localhost:3000
+npm run db:migrate            # apply migrations (once they exist)
+npm run seed                  # two businesses, so isolation is visible from day one
+npm run dev                   # http://localhost:3000
 ```
+Or `npm run setup` to do install → compose up → wait healthy → migrate → seed in one step.
 
-Demo login is created by the seeders — see `backend/README.md`.
+## Scripts
+| Task | Command |
+|---|---|
+| Dev | `npm run dev` |
+| Build | `npm run build` |
+| Verify (lint+types+test) | `npm run verify` |
+| Unit/integration tests | `npm run test` |
+| E2E | `npm run test:e2e` |
+| Generate migration | `npm run db:generate` |
+| Migrate / reset | `npm run db:migrate` / `npm run db:reset` |
+| Seed | `npm run seed` |
 
-## Common scripts
-
-| Task | Backend | Frontend |
-| --- | --- | --- |
-| Dev server | `php artisan serve` | `npm run dev` |
-| Build | — | `npm run build` |
-| Test | `php artisan test` | `npm run test` |
-| Lint | `./vendor/bin/pint` | `npm run lint` |
+## Isolation check (day one)
+`npm run seed` creates **two** businesses. Sign in as a seller of business A and try to open a
+product of business B — you get a **404**. That is the tenant-isolation guarantee, enforced by
+Postgres RLS. Worth seeing first.
 
 ## Branching
-
-- `main` — stable, release-ready
-- `develop` — integration branch for ongoing work
-
-Commits follow [Conventional Commits](https://www.conventionalcommits.org/)
-(`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `build:`).
-
----
-
-_StockFlow · foundation scaffold._
+`main` (stable) · `develop` (integration). Conventional Commits.
