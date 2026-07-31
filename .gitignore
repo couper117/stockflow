@@ -4,12 +4,9 @@ Thumbs.db
 *.swp
 *.swo
 .idea/
-.vscode/*
 !.vscode/extensions.json
 
 # ===== Environment / secrets =====
-.env
-.env.*
 !.env.example
 *.pem
 *.key
@@ -62,3 +59,4 @@ legacy/frontend/.next/
 
 # Keep .gitkeep placeholders
 !**/.gitkeep
+config.bat
