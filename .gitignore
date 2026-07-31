@@ -4,12 +4,9 @@ Thumbs.db
 *.swp
 *.swo
 .idea/
-.vscode/*
 !.vscode/extensions.json
 
 # ===== Environment / secrets =====
-.env
-.env.*
 !.env.example
 *.pem
 *.key
@@ -43,8 +40,23 @@ yarn-error.log*
 Homestead.json
 Homestead.yaml
 
+# ===== Next.js / TS build artifacts =====
+next-env.d.ts
+*.tsbuildinfo
+
 # ===== Docker =====
 /docker/data/
 
+# ===== Legacy reference (NT Laravel + old frontend) — source kept, artifacts not =====
+legacy/backend/vendor/
+legacy/backend/storage/framework/cache/
+legacy/backend/storage/framework/sessions/
+legacy/backend/storage/framework/views/
+legacy/backend/storage/logs/
+legacy/backend/bootstrap/cache/
+legacy/**/node_modules/
+legacy/frontend/.next/
+
 # Keep .gitkeep placeholders
 !**/.gitkeep
+config.bat

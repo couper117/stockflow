@@ -1,0 +1,58 @@
+{
+  "name": "stockflow",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "verify": "npm run lint && npm run typecheck && npm run test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:rollback": "tsx scripts/db-rollback.ts",
+    "db:reset": "tsx scripts/db-reset.ts",
+    "seed": "tsx scripts/seed.ts",
+    "seed:perf": "tsx scripts/seed-perf.ts",
+    "setup": "npm install && docker compose up -d && tsx scripts/wait-for-db.ts && npm run db:migrate && npm run seed"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.0",
+    "argon2": "^0.41.1",
+    "drizzle-orm": "^0.38.0",
+    "next": "16.2.10",
+    "next-intl": "^4.13.2",
+    "postgres": "^3.4.5",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "uuidv7": "^1.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.30.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
+  }
+}
