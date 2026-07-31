@@ -6,7 +6,7 @@ password**. The core flow is the seller→stock-manager transfer: `request → a
 Mobile-first, dark-mode first-class, bilingual EN + RW. **Not** a POS, warehouse, or accounting
 system.
 
-> **Design lives in [`../architecture/`](../architecture/README.md)** — the merged SF-DOC/NT spec.
+> **Design lives in [`docs/architecture/`](docs/architecture/README.md)** — the merged SF-DOC/NT spec.
 > **[`CLAUDE.md`](./CLAUDE.md)** holds the authoritative stack + rules.
 
 One **Next.js full-stack codebase** (TypeScript) · PostgreSQL 16 with **row-level security** ·

@@ -1,7 +1,7 @@
 # CLAUDE.md — StockFlow (merged)
 
 > **This file is authoritative.** Claude Code loads it every session. When a rule or decision
-> changes, update it **here** first. The full design lives in `../architecture/` (SF-DOC merge).
+> changes, update it **here** first. The full design lives in `docs/architecture/` (SF-DOC merge).
 
 ---
 
@@ -52,7 +52,7 @@ The prior NT Laravel + separate-frontend monorepo is preserved under `legacy/` f
 3. **Quantity is derived** from immutable movements, **per location**. There is **no quantity
    column on products**. Corrections are **reversals**, never edits.
 4. **Server decides, client displays.** Every authorization + validation decision is server-side;
-   the permission matrix is enforced on every request (`../architecture/01-requirements.md §3`).
+   the permission matrix is enforced on every request (`docs/architecture/01-requirements.md §3`).
 5. **No hard-coded user-facing text.** Every string is a key present in **both** `en` and `rw`;
    the key sets must match (CI-enforced). Business data (product/unit/location names) is never
    translated.
@@ -72,7 +72,7 @@ The prior NT Laravel + separate-frontend monorepo is preserved under `legacy/` f
 Success: `{ "success": true, "data": …, "message"?: "localized", "meta"? }`.
 Error: `{ "success": false, "message": "localized", "code"?, "errors"?: { field: [...] },
 "details"?, "requestId" }`. Correct status codes (200/201/204, 400/401/402/403/404/409/422/429/500).
-Auth failures reveal nothing about which field was wrong. See `../architecture/04-api-specification.md`.
+Auth failures reveal nothing about which field was wrong. See `docs/architecture/04-api-specification.md`.
 
 ---
 
@@ -106,6 +106,6 @@ every change for the two easiest ways to erode the foundation: **hard-coded stri
 **cross-tenant/cross-shop access**.
 
 ## 7. What is NOT built yet
-Follow `../architecture/05-implementation-plan.md` ticket order. Phase 2 (billing) only after
+Follow `docs/architecture/05-implementation-plan.md` ticket order. Phase 2 (billing) only after
 Phase 1 is signed off. No supplier records (receipts carry an optional free-text `supplier_ref`),
 no POS, no accounting, no barcode, no batch/expiry, no multi-currency within a business.
