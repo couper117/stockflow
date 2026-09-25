@@ -33,6 +33,18 @@
     "role": "Role",
     "foundation_note": "This is the foundation build. Product features arrive in the next sessions."
   },
+  "nav": {
+    "primary": "Main navigation",
+    "soon": "Soon",
+    "dashboard": "Dashboard",
+    "inventory": "Inventory",
+    "takeouts": "Take-outs",
+    "shops": "Shops",
+    "suppliers": "Suppliers",
+    "reports": "Reports",
+    "settings": "Settings",
+    "support": "Support"
+  },
   "roles": {
     "super_admin": "Super Administrator",
     "stock_manager": "Stock Manager",
